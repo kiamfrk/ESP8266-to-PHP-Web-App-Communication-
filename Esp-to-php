@@ -1,0 +1,68 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#include <Wire.h>
+
+//Define Wifi credential
+const char* ssid     = "TP";
+const char* password = "Ajaf7tq2";
+
+// REPLACE with your Domain name and URL path or IP address with path
+const char* serverName = "http://192.168.229.12/espsendata/data.php";
+
+// Keep this API Key value to be compatible with the PHP code provided in the project page. 
+String apiKeyValue = "tPmAT5Ab3j7F9";
+
+//just for the test case you can change it depending o your project
+String sensorName = "BME280";
+String sensorLocation = "My Room";
+
+void setup() {
+  Serial.begin(115200);
+
+  //Network connection definition
+  WiFi.begin(ssid, password);
+  Serial.println("Connecting");
+  while(WiFi.status() != WL_CONNECTED) { 
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to WiFi network with IP Address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  //Check WiFi connection status
+  if(WiFi.status()== WL_CONNECTED){
+    HTTPClient http;
+    WiFiClient wifi;
+    http.begin(wifi, serverName);
+    
+    // Specify content-type header
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    
+    // Prepare your HTTP POST request data
+    String httpRequestData = "api_key=" + apiKeyValue + "&sensor=" + sensorName
+                           + "&location=" + sensorLocation + "&value1=" + String(45)
++ "&value2=" + String(200) + "&value3=" + String(50) + "";
+
+    int httpResponseCode = http.POST(httpRequestData);
+    String payload = http.getString();
+    
+    if (httpResponseCode>0) {
+      Serial.println("payload");
+      Serial.println(payload);
+    }else {
+      Serial.print("Error code: ");
+      Serial.println(httpResponseCode);
+    }
+    // Free resources
+    http.end();
+  }
+  else {
+    Serial.println("WiFi Disconnected");
+  }
+  //Send an HTTP POST request every 15 seconds
+  delay(15000);  
+}
